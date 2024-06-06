@@ -284,6 +284,11 @@ class NetworkingServiceMonitor : View() {
                     cont.put("interruptionStartDelay", interruptionStartDelay)
                 }
 
+                if (content.has("interruptionWaiting")){
+                    val interruptionWaiting = content.get("interruptionWaiting") as Boolean
+                    cont.put("interruptionWaiting", interruptionWaiting)
+                }
+
                 val jsonMsg = JSONObject()
                 jsonMsg.put("type", "frontend")
                 jsonMsg.put("content", cont)

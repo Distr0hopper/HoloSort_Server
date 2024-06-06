@@ -16,6 +16,11 @@
             android:layout_height="match_parent" android:id="@+id/background" android:visibility="visible"
             android:backgroundTint="@color/black"/>
 
+    <Button
+            android:text="Accept call"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:id="@+id/acceptButton" android:textSize="96sp"
+            android:visibility="invisible"/>
     <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent" tools:src="@color/white" android:id="@+id/flashView"

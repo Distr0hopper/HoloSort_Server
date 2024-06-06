@@ -35,18 +35,55 @@ class ArithmeticActivity : AbstractServiceView() {
     private var flash: ImageView? = null
     private var background: ImageView? = null
 
+    // Class variables for the interruption task
+    private var interruptionStartDelay: Long = 0
+    private var interruptionLength: Long = 0
+    private var interruptionButtonClicked: Boolean = false
+
     // the parent element of the buttons
     private var tableRow: TableRow? = null
     private var answerButton1: Button? = null
     private var answerButton2: Button? = null
     private var answerButton3: Button? = null
     private var answerButton4: Button? = null
+    private var acceptButton: Button? = null
 
     private var equationIndex: Int = 0
     private var currentAnswer: Int = 0
 
     private var wasEquationAnswered: Boolean? = null
     private var errorCount: Int = 0
+
+    public override fun onCreate(savedInstanceState: Bundle?) {
+
+        super.onCreate(savedInstanceState)
+
+        this.initPreferences()
+        this.addClientListener(this.defaultClientListener)
+
+        // Set layout
+        setContentView(R.layout.activity_arith)
+
+        //TODO get device and set background
+        this.background = this@ArithmeticActivity.findViewById(R.id.background) as ImageView
+        this.equation = this@ArithmeticActivity.findViewById(R.id.arithTextView) as TextView
+        this.flash = this@ArithmeticActivity.findViewById(R.id.flashView) as ImageView
+
+        this.tableRow = this@ArithmeticActivity.findViewById(R.id.tableRow1) as TableRow
+
+        this.answerButton1 = this@ArithmeticActivity.findViewById(R.id.answerButton1) as Button
+        this.answerButton2 = this@ArithmeticActivity.findViewById(R.id.answerButton2) as Button
+        this.answerButton3 = this@ArithmeticActivity.findViewById(R.id.answerButton3) as Button
+        this.answerButton4 = this@ArithmeticActivity.findViewById(R.id.answerButton4) as Button
+        this.acceptButton = this@ArithmeticActivity.findViewById(R.id.acceptButton) as Button
+
+        this.answerButton1?.setOnClickListener { buttonHandler(this.answerButton1!!) }
+        this.answerButton2?.setOnClickListener { buttonHandler(this.answerButton2!!) }
+        this.answerButton3?.setOnClickListener { buttonHandler(this.answerButton3!!) }
+        this.answerButton4?.setOnClickListener { buttonHandler(this.answerButton4!!) }
+        this.acceptButton?.setOnClickListener { onInterruptionButtonClicked() }
+
+    }
 
     private val defaultClientListener = object : ClientListener {
         override fun onClientMessage(message: String) {
@@ -99,64 +136,15 @@ class ArithmeticActivity : AbstractServiceView() {
                 else // only has interruptionLength in content
                 {
                     val content = json.get("content") as JSONObject
-                    val interruptionLength = (content.get("interruptionLength") as Number).toLong() * 1000 //Convert from milliseconds to seconds
-                    val interruptionStartDelay = (content.get("interruptionStartDelay") as Number).toLong()
+                    Log.d("Content", content.toString())
+                    interruptionLength = (content.get("interruptionLength") as Number).toLong() * 1000 //Convert from milliseconds to seconds
+                    interruptionStartDelay = (content.get("interruptionStartDelay") as Number).toLong()
+                    val interruptionWaiting = (content.getBoolean("interruptionWaiting"))
 
-                    showFlash(true)
-
-                    // Reset errors before every interruption
-                    errorCount = 0
-                    wasEquationAnswered = null
-
-                    val timer = Timer()
-
-                    // Shows a new equation every 5 seconds
-                    Timer().schedule(interruptionStartDelay) {
-                        showFlash(false)
-                        setTextVisible(true)
-
-                        timer.scheduleAtFixedRate(
-                                object : TimerTask() {
-                                    override fun run() {
-
-                                        // before every new equation, evaluate whether the input of the user was correct
-                                        evaluateUserInput()
-                                        showEquation(equationList[equationIndex % equationList.count()])
-                                        equationIndex++
-
-                                        wasEquationAnswered = false
-
-                                    }
-                                }, 10, 5000)
-
-                    }
-
-
-                    // Task is done, send confirmation to backend, cancel previous Timer
-                    Timer().schedule(interruptionLength) {
-                        timer.cancel()
-
-                        evaluateUserInput()
-
-                        val time = Timestamp(System.currentTimeMillis())
-                        val jsonObj = JSONObject()
-                        jsonObj.put("time", time.toString())
-                        jsonObj.put("errorCountInterruption", this@ArithmeticActivity.errorCount)
-
-                        //this@ArithmeticActivity.sendBackEndMessage(jsonObj, "web client")
-                        this@ArithmeticActivity.sendBackEndMessage(jsonObj, "lens")
-
-
-
-                        runOnUiThread {
-                            this@ArithmeticActivity.tableRow?.visibility = View.INVISIBLE
-                        }
-
-                        setTextVisible(false)
-                        showFlash(true)
-                        Timer().schedule(300) {
-                            showFlash(false)
-                        }
+                    if (interruptionWaiting)
+                    {
+                        // Display button to start interruption
+                       showAcceptButtonForInterruption()
                     }
                 }
             }
@@ -167,38 +155,85 @@ class ArithmeticActivity : AbstractServiceView() {
         }
     }
 
+    /*
+    * This bullshit message only exists because fkin android studio wants this to be run on the UiThread ...
+     */
+    private fun showAcceptButtonForInterruption() {
+        runOnUiThread {
+            acceptButton?.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showMathEquationsAndProcessInput(interruptionStartDelay: Long, interruptionLength: Long) {
+        showFlash(true)
+
+        // Reset errors before every interruption
+        errorCount = 0
+        wasEquationAnswered = null
+
+        val timer = Timer()
+
+        // Shows a new equation every 5 seconds
+        Timer().schedule(interruptionStartDelay) {
+            showFlash(false)
+            setTextVisible(true)
+
+            timer.scheduleAtFixedRate(
+                object : TimerTask() {
+                    override fun run() {
+
+                        // before every new equation, evaluate whether the input of the user was correct
+                        evaluateUserInput()
+                        showEquation(equationList[equationIndex % equationList.count()])
+                        equationIndex++
+
+                        wasEquationAnswered = false
+
+                    }
+                }, 10, 5000
+            )
+
+        }
+
+        // Task is done, send confirmation to backend, cancel previous Timer
+        Timer().schedule(interruptionLength) {
+            timer.cancel()
+
+            evaluateUserInput()
+
+            val time = Timestamp(System.currentTimeMillis())
+            val jsonObj = JSONObject()
+            jsonObj.put("time", time.toString())
+            jsonObj.put("errorCountInterruption", this@ArithmeticActivity.errorCount)
+
+            //this@ArithmeticActivity.sendBackEndMessage(jsonObj, "web client")
+            this@ArithmeticActivity.sendBackEndMessage(jsonObj, "lens")
+
+
+
+            runOnUiThread {
+                this@ArithmeticActivity.tableRow?.visibility = View.INVISIBLE
+            }
+
+            setTextVisible(false)
+            showFlash(true)
+            Timer().schedule(300) {
+                showFlash(false)
+            }
+        }
+    }
 
     private fun endScenario() {
         super.dealWithScenarioEnd()
     }
 
-    public override fun onCreate(savedInstanceState: Bundle?) {
-
-        super.onCreate(savedInstanceState)
-
-        this.initPreferences()
-        this.addClientListener(this.defaultClientListener)
-
-        // Set layout
-        setContentView(R.layout.activity_arith)
-
-        //TODO get device and set background
-        this.background = this@ArithmeticActivity.findViewById(R.id.background) as ImageView
-        this.equation = this@ArithmeticActivity.findViewById(R.id.arithTextView) as TextView
-        this.flash = this@ArithmeticActivity.findViewById(R.id.flashView) as ImageView
-
-        this.tableRow = this@ArithmeticActivity.findViewById(R.id.tableRow1) as TableRow
-
-        this.answerButton1 = this@ArithmeticActivity.findViewById(R.id.answerButton1) as Button
-        this.answerButton2 = this@ArithmeticActivity.findViewById(R.id.answerButton2) as Button
-        this.answerButton3 = this@ArithmeticActivity.findViewById(R.id.answerButton3) as Button
-        this.answerButton4 = this@ArithmeticActivity.findViewById(R.id.answerButton4) as Button
-
-        this.answerButton1?.setOnClickListener { buttonHandler(this.answerButton1!!) }
-        this.answerButton2?.setOnClickListener { buttonHandler(this.answerButton2!!) }
-        this.answerButton3?.setOnClickListener { buttonHandler(this.answerButton3!!) }
-        this.answerButton4?.setOnClickListener { buttonHandler(this.answerButton4!!) }
-
+    private fun onInterruptionButtonClicked() {
+        interruptionButtonClicked = true
+        acceptButton?.visibility = View.INVISIBLE
+        val time = Timestamp(System.currentTimeMillis())
+        val jsonObj = JSONObject()
+        jsonObj.put("time", time.toString())
+        showMathEquationsAndProcessInput(interruptionStartDelay, interruptionLength)
     }
 
     private fun buttonHandler(button: Button)

@@ -51,6 +51,7 @@ class ConfigActivity : AbstractServiceView() {
                 this@ConfigActivity.setPreference("Training", training.toString())
                 val interruptionTask = json.getString("interruptionTask") as String
                 this@ConfigActivity.setPreference("interruptionTask", interruptionTask)
+                println(json);
 //                println(calibration)
 //                if (calibration) {
 //                    this@ConfigActivity.startActivity(Intent(this@ConfigActivity, CalibrationActivity::class.java))
@@ -58,6 +59,7 @@ class ConfigActivity : AbstractServiceView() {
                     if (interruptionTask == "alarm") {
                         this@ConfigActivity.startActivity(Intent(this@ConfigActivity, AlarmActivity::class.java))
                     } else if (interruptionTask == "arithmetic") {
+                        // Start the arithmetic task
                         this@ConfigActivity.startActivity(Intent(this@ConfigActivity, ArithmeticActivity::class.java))
                     }
             //    }
