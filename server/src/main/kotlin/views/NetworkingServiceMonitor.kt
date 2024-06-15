@@ -218,46 +218,46 @@ class NetworkingServiceMonitor : View() {
                 return
             }
 
-            if (jsonObject.isDedicatedTo("lens"))
-            {
-                val lens = subscriberTable.items.find{ it.name == "lens" } ?: return
-                
+            if (jsonObject.isDedicatedTo("lens")) {
+                val lens = subscriberTable.items.find { it.name == "lens" } ?: return
+
                 // content either has "rect" or "correctModuleEnabled"
                 val contentObject = jsonObject.get("content") as JSONObject
-                
-                if (contentObject.has("relativeCenter"))
-                {
+
+                if (contentObject.has("relativeCenter")) {
                     val rect = contentObject.get("relativeCenter")
                     val interruptionLength = contentObject.get("interruptionLength")
                     val hololensCueType = contentObject.get("hololensCueType")
 
-                    if (hololensCueType.toString() == HololensCueType.MANUAL.identifier)
-                    {
+                    if (hololensCueType.toString() == HololensCueType.MANUAL.identifier) {
                         lockCursorTimer = lockCursor(null)
                     }
 
-                    if (hololensCueType.toString() != HololensCueType.NONE.identifier)
-                    {
+                    if (hololensCueType.toString() != HololensCueType.NONE.identifier) {
                         val holoLensMsg = JSONObject()
                         holoLensMsg.put("relativeCenter", rect)
                         holoLensMsg.put("interruptionLength", interruptionLength)
                         holoLensMsg.put("hololensCueType", hololensCueType)
                         Publisher.sendMessage(holoLensMsg, lens)
-                    } 
+                    }
                 }
 
-                if (contentObject.has("correctModuleEnabled"))
-                {
+                if (contentObject.has("correctModuleEnabled")) {
                     val hololensMsg = JSONObject()
                     hololensMsg.put("correctModuleEnabled", true)
-                    
+
                     Publisher.sendMessage(hololensMsg, lens)
                 }
 
-                if (contentObject.has("errorCountInterruption"))
-                {
+                if (contentObject.has("errorCountInterruption")) {
                     val hololensMsg = JSONObject()
                     hololensMsg.put("errorCountInterruption", contentObject.get("errorCountInterruption"))
+
+                    Publisher.sendMessage(hololensMsg, lens)
+                }
+                if (contentObject.has("interruptionAccepted")) {
+                    val hololensMsg = JSONObject()
+                    hololensMsg.put("interruptionAccepted", contentObject.get("interruptionAccepted"))
 
                     Publisher.sendMessage(hololensMsg, lens)
                 }

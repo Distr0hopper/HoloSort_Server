@@ -232,8 +232,12 @@ class ArithmeticActivity : AbstractServiceView() {
         acceptButton?.visibility = View.INVISIBLE
         val time = Timestamp(System.currentTimeMillis())
         val jsonObj = JSONObject()
+        // JSON object containing string "interrupt" and the current time
+        jsonObj.put("interruptionAccepted", "true")
         jsonObj.put("time", time.toString())
         showMathEquationsAndProcessInput(interruptionStartDelay, interruptionLength)
+        // Send message to server that the interruption has started
+        this.sendBackEndMessage(jsonObj, "lens")
     }
 
     private fun buttonHandler(button: Button)
@@ -399,7 +403,8 @@ class ArithmeticActivity : AbstractServiceView() {
 
 
     //1-100
-    val equationsEasy = listOf<String>("13-4",
+    val equationsEasy = listOf<String>(
+        "13-4",
         "14+10",
         "7+3",
         "16-9",
@@ -408,6 +413,7 @@ class ArithmeticActivity : AbstractServiceView() {
         "15+5",
         "8-4",
         "10-6",
+        // First interruption ends
         "15-6",
         "12+5",
         "5-1",
