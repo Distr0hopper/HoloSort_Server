@@ -27,6 +27,7 @@ _Ignore the warnings, if the Gradle Sync shows green arrows, everything is fine.
 
 - Build Server:
   - To build the executables for the server (jar files) use the Gradle-menu "server" > "Tasks" > "others" > "menu"
+    - (**this needs to be done after every change in the server code!!**)
   - Make sure java is installed on the system and the path is set correctly
   - Go to the folder: /HoloSort_Server/server/build/libs
   - Open file "Pill-Exp-Server.jar"  (e.g. by opening folder in terminal and typing `java -jar Pill-Exp-Server.jar`)
@@ -37,6 +38,10 @@ _Ignore the warnings, if the Gradle Sync shows green arrows, everything is fine.
   - If not able to run, select three-dots > edit. Make sure run configuration is set to "client-interruption.app.main" 
     - ![img_2.png](sources%2Fimg_2.png)
     - ![img_1.png](sources%2Fimg_1.png)
+   
+- Programming Server calls:
+  - AbstractServiceView.kt as parent class to send messages to Backend (methods to call - processing of the message is done in the NetworkingServiceMonitor)
+  - **NetworkingServiceMonitor.kt** is orchastrating the outgoing and incoming calls
 
 **For more information, see the [User Manual](sources/Einführung_Programmcode.pdf) and for installation troubleshooting see [Installation and Troubleshooting Guide](sources/Installation-troubleshooting-guide.pdf)** 
 ## Relevant files
