@@ -57,6 +57,7 @@ class ExperimentRunner : AbstractTrialDesigner<Trial>(Trial()) {
         expConfiguration.interruptionTask = "arithmetic"
         expConfiguration.deviceProperty.value = "Tablet"
         expConfiguration.handednessProperty.value = "both"
+        expConfiguration.expTypeProperty.value = "holosort"
     }
 
     //Menu bar
@@ -211,8 +212,33 @@ class ExperimentRunner : AbstractTrialDesigner<Trial>(Trial()) {
 
                     }
 
+                    field("Experiment Type")
+                    {
+                        val toggleGroup = ToggleGroup()
+                        vbox {
+                            radiobutton("Holosort", toggleGroup) {
+                                isSelected = expConfiguration.expType == "holosort"
+
+                                action {
+                                    expConfiguration.expType = "holosort"
+                                }
+                            }
+
+                            radiobutton("Holosort-Strategies", toggleGroup) {
+                                action {
+                                    expConfiguration.expType = "holosort-strategies"
+                                }
+                            }
+
+                        }
+
+                    }
+
                 }
             }
+
+
+
 
             hbox(20) {
                 button("Verify config").action {
@@ -283,6 +309,7 @@ class ExperimentRunner : AbstractTrialDesigner<Trial>(Trial()) {
                 jsonObj.put("participantNr", expConfiguration.participantNumber)
                 jsonObj.put("handedness", expConfiguration.handedness)
                 jsonObj.put("trial", JSONObject(trial.toString()))
+                jsonObj.put("expType", expConfiguration.expType)
                 //es muss hier trial.toString() sein, sonst klappt IRGENDWAS nicht bei der JSON Serialisierung
                 // und dann gibt es Probleme wie: //// statt //
 

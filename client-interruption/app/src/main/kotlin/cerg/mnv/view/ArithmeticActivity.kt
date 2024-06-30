@@ -152,6 +152,8 @@ class ArithmeticActivity : AbstractServiceView() {
                     {
                         // Display button to start interruption
                        showAcceptButtonAndWaitForAcceptance()
+                    } else {
+                        showMathEquationsAndProcessInput(interruptionStartDelay, interruptionLength)
                     }
                 }
             }

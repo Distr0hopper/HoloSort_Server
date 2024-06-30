@@ -35,6 +35,9 @@ class ExperimentConfiguration : JsonModel {
     val handednessProperty = SimpleStringProperty(null)
     var handedness: String? by handednessProperty
 
+    val expTypeProperty = SimpleStringProperty(null)
+    var expType: String? by expTypeProperty
+
     override fun updateModel(json: JsonObject) {
         with(json) {
             participantNumber = int("ParticipantNumber")!!
@@ -43,6 +46,7 @@ class ExperimentConfiguration : JsonModel {
             interruptionTask = string("InterruptionTask")
             trainingIncluded = boolean("TrainingIncluded")!!
             handedness = string("Handedness")
+            expType = string("ExpType")
         }
     }
 
@@ -55,6 +59,7 @@ class ExperimentConfiguration : JsonModel {
             add("Device", device)
             add("TrainingIncluded", trainingIncluded)
             add("Handedness", handedness)
+            add("ExpType", expType)
         }
     }
 
@@ -69,6 +74,7 @@ class ExperimentConfiguration : JsonModel {
         device = null
         trainingIncluded = true
         handedness = null
+        expType = null
     }
 
     override fun toString(): String = toJSON().toString()
