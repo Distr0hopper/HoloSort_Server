@@ -1,11 +1,14 @@
 # Server and Client for HoloSort experiment
-This is the server and client for the HoloSort experiment.
+This is the server and client for the [HoloSort](https://gitlab2.informatik.uni-wuerzburg.de/s407742/holosort) experiment.
 The server is a Java application that runs on a desktop PC.
 The client is an Android application that runs on a tablet.
 The server and client communicate via a network connection.
 The server sends math exercises to the client, and the client sends the user's answers back to the server.
 The server ochestrates the experiment between the tablet and the HoloLens.
 ![img_3.png](sources%2Fimg_3.png)
+
+### For ['Holosort-Strategies'](https://gitlab2.informatik.uni-wuerzburg.de/s407742/holosort-strategies):
+![Interruption_handling.png](sources%2FInterruption_handling.png)
 ## Requirements
 
 - IntelliJ
@@ -41,7 +44,7 @@ _Ignore the warnings, if the Gradle Sync shows green arrows, everything is fine.
    
 - Programming Server calls:
   - AbstractServiceView.kt as parent class to send messages to Backend (methods to call - processing of the message is done in the NetworkingServiceMonitor)
-  - **NetworkingServiceMonitor.kt** is orchastrating the outgoing and incoming calls
+  - **NetworkingServiceMonitor.kt** is orchastrating the outgoing and incoming calls. The **onMessage()** method has to be expanded for every new call!
 
 **For more information, see the [User Manual](sources/Einführung_Programmcode.pdf) and for installation troubleshooting see [Installation and Troubleshooting Guide](sources/Installation-troubleshooting-guide.pdf)** 
 ## Relevant files

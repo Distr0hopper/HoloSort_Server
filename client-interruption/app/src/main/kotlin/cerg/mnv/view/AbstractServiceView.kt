@@ -100,6 +100,9 @@ abstract class AbstractServiceView : Activity() {
         networkingService?.sendMessage(wrapper)
     }
 
+    /**
+     * Don't forget to expand the if-statements in NetworkingServiceMonitor.kt => onMessage()
+     */
     fun sendBackEndMessage(jsonObject: JSONObject, target: String) {
         val wrapper = JSONObject(createJsonForGivenType(MESSAGE_TYPE.MNV_BACK_END_HANDLER, ""))
         wrapper.put("content", jsonObject)

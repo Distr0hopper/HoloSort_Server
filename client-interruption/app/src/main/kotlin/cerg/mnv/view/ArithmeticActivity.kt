@@ -4,6 +4,8 @@ package cerg.mnv.view
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -38,7 +40,8 @@ class ArithmeticActivity : AbstractServiceView() {
     // Class variables for the interruption task
     private var interruptionStartDelay: Long = 0
     private var interruptionLength: Long = 0
-    private var interruptionButtonClicked: Boolean = false
+    private var isInterruptionAccepted: Boolean = false
+    private val handler = Handler(Looper.getMainLooper())
 
     // the parent element of the buttons
     private var tableRow: TableRow? = null
@@ -64,7 +67,6 @@ class ArithmeticActivity : AbstractServiceView() {
         // Set layout
         setContentView(R.layout.activity_arith)
 
-        //TODO get device and set background
         this.background = this@ArithmeticActivity.findViewById(R.id.background) as ImageView
         this.equation = this@ArithmeticActivity.findViewById(R.id.arithTextView) as TextView
         this.flash = this@ArithmeticActivity.findViewById(R.id.flashView) as ImageView
@@ -105,6 +107,10 @@ class ArithmeticActivity : AbstractServiceView() {
             this@ArithmeticActivity.endScenario()
         }
 
+        /**
+         * Method that will parse the incoming data from Lens or Server.
+         * Relevant part in the else statement.
+         */
         override fun onServerMessage(message: String) {
             this@ArithmeticActivity.processServerMessage(message)
 
@@ -135,16 +141,17 @@ class ArithmeticActivity : AbstractServiceView() {
                 }
                 else // only has interruptionLength in content
                 {
+                    // Parse JSON data
                     val content = json.get("content") as JSONObject
                     Log.d("Content", content.toString())
                     interruptionLength = (content.get("interruptionLength") as Number).toLong() * 1000 //Convert from milliseconds to seconds
                     interruptionStartDelay = (content.get("interruptionStartDelay") as Number).toLong()
-                    val interruptionWaiting = (content.getBoolean("interruptionWaiting"))
+                    val isInterruptionWaiting = (content.getBoolean("interruptionWaiting"))
 
-                    if (interruptionWaiting)
+                    if (isInterruptionWaiting)
                     {
                         // Display button to start interruption
-                       showAcceptButtonForInterruption()
+                       showAcceptButtonAndWaitForAcceptance()
                     }
                 }
             }
@@ -155,15 +162,60 @@ class ArithmeticActivity : AbstractServiceView() {
         }
     }
 
-    /*
-    * This bullshit message only exists because fkin android studio wants this to be run on the UiThread ...
-     */
-    private fun showAcceptButtonForInterruption() {
+    /**
+     * Method that will show the accept button when waiting for interruption to be accepted.
+     * If the button is not pressed within 8 seconds, hide the button and send notification to Lens that interruption was missed.
+     **/
+    private fun showAcceptButtonAndWaitForAcceptance() {
         runOnUiThread {
             acceptButton?.visibility = View.VISIBLE
+            isInterruptionAccepted = false;
+            // Wait 8s, when not accepted in 8s, hide button and send msg to HoloLens that interruption was missed
+            handler.postDelayed({
+                if (!isInterruptionAccepted) {
+                    acceptButton?.visibility = View.INVISIBLE
+                    //send missed interruption to lens
+                    sendInterruptionMissedMessageToLens()
+                }
+            }, 8000)
         }
     }
 
+    /**
+     * Method used when the interruption button was clicked.
+     * Send notification to Lens that button was clicked and start showing the Math equations.
+     * TODO: Send Timestamp
+     **/
+    private fun onInterruptionButtonClicked() {
+        isInterruptionAccepted = true
+        acceptButton?.visibility = View.INVISIBLE
+        val time = Timestamp(System.currentTimeMillis())
+        val jsonObj = JSONObject()
+        // JSON object containing string "interrupt" and the current time
+        jsonObj.put("interruptionAccepted", "true")
+        jsonObj.put("time", time.toString())
+        showMathEquationsAndProcessInput(interruptionStartDelay, interruptionLength)
+        // Send message to server that the interruption has started
+        this.sendBackEndMessage(jsonObj, "lens")
+    }
+
+    /**
+     * Method used when the interruption button was NOT clicked and 8s passed => Interruption missed by the user
+     * Send notification to Lens that interruption was missed since no button has been clicked.
+     **/
+    private fun sendInterruptionMissedMessageToLens() {
+        Log.d("Interruption", "Interruption was not accepted within 8 seconds.")
+        val jsonObj = JSONObject()
+        jsonObj.put("interruptionAccepted", "false")
+
+        this.sendBackEndMessage(jsonObj,"lens")
+
+    }
+
+    /**
+     * Method showing math equations and evaluating the user input.
+     * Counting how many errors has been made
+     */
     private fun showMathEquationsAndProcessInput(interruptionStartDelay: Long, interruptionLength: Long) {
         showFlash(true)
 
@@ -225,19 +277,6 @@ class ArithmeticActivity : AbstractServiceView() {
 
     private fun endScenario() {
         super.dealWithScenarioEnd()
-    }
-
-    private fun onInterruptionButtonClicked() {
-        interruptionButtonClicked = true
-        acceptButton?.visibility = View.INVISIBLE
-        val time = Timestamp(System.currentTimeMillis())
-        val jsonObj = JSONObject()
-        // JSON object containing string "interrupt" and the current time
-        jsonObj.put("interruptionAccepted", "true")
-        jsonObj.put("time", time.toString())
-        showMathEquationsAndProcessInput(interruptionStartDelay, interruptionLength)
-        // Send message to server that the interruption has started
-        this.sendBackEndMessage(jsonObj, "lens")
     }
 
     private fun buttonHandler(button: Button)
