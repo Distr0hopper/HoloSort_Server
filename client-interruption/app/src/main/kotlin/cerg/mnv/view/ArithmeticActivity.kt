@@ -42,6 +42,7 @@ class ArithmeticActivity : AbstractServiceView() {
     private var interruptionLength: Long = 0
     private var isInterruptionAccepted: Boolean = false
     private val handler = Handler(Looper.getMainLooper())
+    private val timeToAcceptInterruption = 8000L
 
     // the parent element of the buttons
     private var tableRow: TableRow? = null
@@ -179,7 +180,7 @@ class ArithmeticActivity : AbstractServiceView() {
                     //send missed interruption to lens
                     sendInterruptionMissedMessageToLens()
                 }
-            }, 8000)
+            }, timeToAcceptInterruption)
         }
     }
 

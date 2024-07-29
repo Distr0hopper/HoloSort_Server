@@ -46,6 +46,8 @@ _Ignore the warnings, if the Gradle Sync shows green arrows, everything is fine.
   - AbstractServiceView.kt as parent class to send messages to Backend (methods to call - processing of the message is done in the NetworkingServiceMonitor)
   - **NetworkingServiceMonitor.kt** is orchastrating the outgoing and incoming calls. The **onMessage()** method has to be expanded for every new call!
 
+- Change how long user can accept the interruption: 
+  - ArithmeticActivity.kt > change variable "timeToAcceptInterruption" (in milliseconds)
 **For more information, see the [User Manual](sources/Einführung_Programmcode.pdf) and for installation troubleshooting see [Installation and Troubleshooting Guide](sources/Installation-troubleshooting-guide.pdf)** 
 ## Relevant files
 
