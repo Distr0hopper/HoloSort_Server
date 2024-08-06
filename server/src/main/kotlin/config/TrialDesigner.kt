@@ -302,8 +302,8 @@ class TrialDesigner : AbstractTrialDesigner<Trial>(Trial()) {
 
     private fun validateDay(day: ObservableList<String>): Boolean
     {
-        // current min/max is 6...12
-        if (day.count() < 6 || day.count() > 12)
+        // old min/max is 6...12. For HoloStrat it doesnt matter
+        if (day.count() < 1 || day.count() > 999)
         {
             return false
         }
@@ -314,7 +314,7 @@ class TrialDesigner : AbstractTrialDesigner<Trial>(Trial()) {
             return false
         }
 
-        //Farben dürfen mehrfach vorkommen, aber dann darf NICHT nach ihnen unterbrochen werden
+        //Farben dürfen mehrfach vorkommen, aber dann darf NICHT vor ihnen unterbrochen werden
         for (i in day.indices)
         {
             if (i == day.count() - 1) break //höre beim vorletzten item auf
@@ -323,14 +323,15 @@ class TrialDesigner : AbstractTrialDesigner<Trial>(Trial()) {
             val num = day.count {it == currentItem}
             if (num <= 1)  continue
 
-            // wenn es mehrere gleiche Farben gibt, dann prüfe bei allen davon, ob das nächste short oder long ist
+            // wenn es mehrere gleiche Farben gibt, dann prüfe bei allen davon, ob das vorherige short oder long ist
             for (j in day.indices)
             {
                 if (j == day.count() - 1) break
                 if (day[j] != currentItem) continue
+                if(j == 0) continue
 
-                val nextItem = day[j+1]
-                if (nextItem == "short" || nextItem == "long")
+                val lastItem = day[j-1]
+                if (lastItem == "short" || lastItem == "long")
                 {
                     return false
                 }
@@ -351,10 +352,10 @@ class TrialDesigner : AbstractTrialDesigner<Trial>(Trial()) {
             }
 
             // no two consecutive pills of the same type are allowed
-            if (currentItem == nextItem)
-            {
-                return false
-            }
+            //if (currentItem == nextItem)
+            //{
+            //    return false
+            //}
 
             // also not with an interruption in between
             if (nextItem == "short" || nextItem == "long")

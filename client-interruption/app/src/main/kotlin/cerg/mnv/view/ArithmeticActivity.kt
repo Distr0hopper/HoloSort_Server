@@ -42,7 +42,7 @@ class ArithmeticActivity : AbstractServiceView() {
     private var interruptionLength: Long = 0
     private var isInterruptionAccepted: Boolean = false
     private val handler = Handler(Looper.getMainLooper())
-    private val timeToAcceptInterruption = 8000L
+    private val timeToAcceptInterruption: Long = 8000L
 
     // the parent element of the buttons
     private var tableRow: TableRow? = null
